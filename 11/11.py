@@ -2,8 +2,6 @@ import numpy as np
 from scipy import ndimage
 
 def main():
-    #fn = 'simple.txt'
-    #fn = 'test.txt'
     fn = 'input.txt'
 
     with open(fn, 'r') as f:
