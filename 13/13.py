@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 
 def main():
@@ -22,9 +23,6 @@ def main():
             pt = tuple(int(s) for s in li.split(','))
             points.add(pt)
 
-    print(folds)
-    print(points)
-
     for axis, fold_val in folds:
         for pt in list(points):
             if axis == 'x':
@@ -38,22 +36,16 @@ def main():
                     points.remove(pt)
                     points.add(new_pt)
 
-    print(len(points))
-
-
     max_x = max([pt[0] for pt in points])
     max_y = max([pt[1] for pt in points])
 
-    g = np.zeros((max_y+1, max_x+1), dtype=np.uint8)
-    np.set_printoptions(linewidth=np.inf)
+    g = np.ones((max_y+1, max_x+1), dtype=str)
+    g[:] = ' '
     for pt in points:
-        g[pt[1],pt[0]] = 1
-    print(g)
-    
-                
-            
-        
+        g[pt[1],pt[0]] = 'O'
 
+    np.savetxt(sys.stdout.buffer, g, fmt='%s', delimiter='')
+    
 
 if __name__ == '__main__':
     main()
