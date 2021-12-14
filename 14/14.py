@@ -1,4 +1,4 @@
-from collections import Counter, defaultdict
+from collections import Counter
 
 def main():
     fn = 'input.txt'
@@ -8,7 +8,7 @@ def main():
         lines = [li.strip() for li in f.readlines()]
 
     p = lines[0]
-    pair_counter = Counter([p[i-2:i] for i in range(2,len(p)+1)])
+    pair_counter = Counter([p[i:i+2] for i in range(len(p)-1)])
 
     lr_map = dict()
     for li in lines[2:]:
@@ -17,7 +17,7 @@ def main():
         right = middle+pair[1]
         lr_map[pair] = [left, right]
 
-    for n in range(10):
+    for n in range(40):
         old_counter = pair_counter
         pair_counter = Counter()
         for pair, count in old_counter.items():
