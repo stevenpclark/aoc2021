@@ -1,4 +1,4 @@
-from collections import Counter
+from collections import Counter, defaultdict
 
 def main():
     fn = 'input.txt'
@@ -8,35 +8,30 @@ def main():
         lines = [li.strip() for li in f.readlines()]
 
     p = lines[0]
-    
-    print(set(p))
+    pair_counter = Counter([p[i-2:i] for i in range(2,len(p)+1)])
 
-    rules = dict()
+    lr_map = dict()
     for li in lines[2:]:
-        a, b = li.split(' -> ')
-        rules[tuple(a)] = b
+        pair, middle = li.split(' -> ')
+        left = pair[0]+middle
+        right = middle+pair[1]
+        lr_map[pair] = [left, right]
 
+    for n in range(10):
+        old_counter = pair_counter
+        pair_counter = Counter()
+        for pair, count in old_counter.items():
+            left, right = lr_map[pair]
+            pair_counter[left] += count
+            pair_counter[right] += count
 
-    for n in range(20):
-        new_p = list()
-        for i, c1 in enumerate(p[:-1]):
-            c2 = p[i+1]
-            new_c = rules[(c1, c2)]
-            new_p.extend([c1, new_c])
-        new_p.append(p[-1])
-        p = ''.join(new_p)
-        counts = Counter(p).most_common()
-        #print(counts[0][1] - counts[-1][1])
-        print(counts)
+    char_counter = Counter()
+    for pair, count in pair_counter.items():
+        char_counter[pair[0]] += count
 
-
-    
-    #ss = set()
-    #for i, c1 in enumerate(p[:-3]):
-        #ss.add(p[i:i+4])
-    #print(len(ss))
-    
-
+    char_counter[p[-1]] += 1
+    counts = char_counter.most_common()
+    print(counts[0][1] - counts[-1][1])
 
 if __name__ == '__main__':
     main()
