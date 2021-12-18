@@ -46,12 +46,14 @@ def a_star(world):
     f_score[start] = h(start, goal)
 
     open_heap = []
+    in_heap_set = set()
     heapq.heappush(open_heap, (f_score[start], start))
+    in_heap_set.add(start)
 
     while open_heap:
         _, current = heapq.heappop(open_heap)
+        in_heap_set.remove(current)
         if current == goal:
-            print('yay goal')
             print(g_score[goal])
             return
 
@@ -60,8 +62,9 @@ def a_star(world):
             if tentative_g_score < g_score[n2]:
                 g_score[n2] = tentative_g_score
                 f_score[n2] = tentative_g_score + h(n2, goal)
-                if n2 not in open_heap:
+                if n2 not in in_heap_set:
                     heapq.heappush(open_heap, (f_score[n2], n2))
+                    in_heap_set.add(n2)
 
     print('failure')
 
