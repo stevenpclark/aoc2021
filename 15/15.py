@@ -1,11 +1,70 @@
+from math import inf
+from collections import defaultdict
+import heapq
 import numpy as np
-from scipy.sparse import csr_matrix
-from scipy.sparse.csgraph import shortest_path
 
-def part_twoify(g):
-    nr, nc = g.shape
-    g2 = np.tile(g, (5,5))
-    return g2
+def part_twoify(world):
+    nr, nc = world.shape
+    world2 = np.tile(world, (5,5))
+    for tr in range(5):
+        for tc in range(5):
+            inc = tr+tc
+            world2[tr*nr:(tr+1)*nr, tc*nc:(tc+1)*nc] += inc
+    world2[world2>9] -= 9
+    return world2
+
+def h(n, goal):
+    #must not over-estimate
+    r1, c1 = n
+    r2, c2 = goal
+    return abs(r2-r1)+abs(c2-c1)
+
+
+def a_star(world):
+    #https://en.wikipedia.org/wiki/A*_search_algorithm
+    nr, nc = world.shape
+    start = (0, 0)
+    goal = (nr-1, nc-1)
+
+    def get_neighbors(n):
+        r, c = n
+        neighbors = list()
+        if r >= 1:
+            neighbors.append((r-1, c))
+        if c >= 1:
+            neighbors.append((r, c-1))
+        if r < nr-1:
+            neighbors.append((r+1, c))
+        if c < nc-1:
+            neighbors.append((r, c+1))
+        return neighbors
+
+    g_score = defaultdict(lambda:inf)
+    g_score[start] = 0
+
+    f_score = defaultdict(lambda:inf)
+    f_score[start] = h(start, goal)
+
+    open_heap = []
+    heapq.heappush(open_heap, (f_score[start], start))
+
+    while open_heap:
+        _, current = heapq.heappop(open_heap)
+        if current == goal:
+            print('yay goal')
+            print(g_score[goal])
+            return
+
+        for n2 in get_neighbors(current):
+            tentative_g_score = g_score[current] + world[n2]
+            if tentative_g_score < g_score[n2]:
+                g_score[n2] = tentative_g_score
+                f_score[n2] = tentative_g_score + h(n2, goal)
+                if n2 not in open_heap:
+                    heapq.heappush(open_heap, (f_score[n2], n2))
+
+    print('failure')
+
 
 def main():
     #fn = 'tiny.txt'
@@ -17,47 +76,11 @@ def main():
 
     lines = [[int(c) for c in li] for li in lines]
 
-    g = np.array(lines)
+    world = np.array(lines)
 
-    #g = part_twoify(g)
-    print(g)
+    world = part_twoify(world)
 
-    nr, nc = g.shape
-    print(nr, nc)
-    count = nr*nc
-
-    t_costs = np.zeros((count, count))
-
-    def rc_to_i(r,c):
-        return r*nc + c
-
-    for r in range(nr):
-        for c in range(nc):
-            i1 = rc_to_i(r,c)
-            neighbors = list()
-            if r>=1:
-                neighbors.append((r-1,c))
-            if c>=1:
-                neighbors.append((r,c-1))
-            if r<nr-1:
-                neighbors.append((r+1,c))
-            if c<nc-1:
-                neighbors.append((r,c+1))
-            for r2,c2 in neighbors:
-                i2 = rc_to_i(r2,c2)
-                t_costs[i1,i2] = g[r2,c2]
-                t_costs[i2,i1] = g[r,c]
-
-    graph = csr_matrix(t_costs)
-    #print(graph)
-
-    dist_matrix = shortest_path(csgraph=graph, directed=True, indices=0, return_predecessors=False, method='auto')
-    print(int(dist_matrix[-1]))
-
-
-
-
-
+    a_star(world)
 
 
 if __name__ == '__main__':
