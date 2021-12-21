@@ -12,7 +12,7 @@ def is_terminal(state):
 def get_next_states(state):
     #return list of (next_state, count) tuples
     s_a, s_b, p_a, p_b, turn = state
-    new_turn = (turn+1)%2
+    new_turn = not turn
 
     results = list()
     for roll_sum, count in roll_counts.items():
@@ -27,7 +27,7 @@ def main():
     p_start = (8,3)
 
     #state: s_a * s_b * p_a * p_b * turn
-    start_state = (0,0,p_start[0],p_start[1],0)
+    start_state = (0,0,p_start[0],p_start[1],False)
     uni_counts = Counter([start_state])
 
     done = False
