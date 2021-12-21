@@ -4,11 +4,7 @@ import numpy as np
 
 #7 possible roll sum values, 1 universe turns into 27
 dv = [1,2,3]
-roll_counts = Counter([sum(tup) for tup in list(product(dv,dv,dv))])
-assert sum(roll_counts.values()) == 27
-
-#p_start = (4,8)
-p_start = (8,3)
+roll_counts = Counter(sum(tup) for tup in product(dv,dv,dv))
 
 def is_terminal(state):
     return state[0] >= 21 or state[1] >= 21
@@ -27,6 +23,9 @@ def get_next_states(state):
     return results
 
 def main():
+    #p_start = (4,8)
+    p_start = (8,3)
+
     #state: s_a * s_b * p_a * p_b * turn
     start_state = (0,0,p_start[0],p_start[1],0)
     uni_counts = Counter([start_state])
@@ -50,10 +49,7 @@ def main():
             p1_wins += count
         else:
             p2_wins += count
-
     print(max(p1_wins, p2_wins))
-
-    
 
 if __name__ == '__main__':
     main()
