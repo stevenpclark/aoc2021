@@ -4,7 +4,7 @@ import numpy as np
 
 #7 possible roll sum values, 1 universe turns into 27
 dv = [1,2,3]
-roll_counts = Counter(sum(tup) for tup in product(dv,dv,dv))
+roll_counts = Counter(map(sum, product(dv,dv,dv)))
 
 def is_terminal(state):
     return state[0] >= 21 or state[1] >= 21
