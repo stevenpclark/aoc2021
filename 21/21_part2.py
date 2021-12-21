@@ -3,8 +3,8 @@ from collections import Counter
 import numpy as np
 
 #7 possible roll sum values, 1 universe turns into 27
-dv = [1,2,3]
-roll_counts = Counter(map(sum, product(dv,dv,dv)))
+DV = [1,2,3]
+ROLL_COUNTS = Counter(map(sum, product(DV,DV,DV)))
 
 def is_terminal(state):
     return state[0] >= 21 or state[1] >= 21
@@ -15,7 +15,7 @@ def get_next_states(state):
     new_turn = not turn
 
     results = list()
-    for roll_sum, count in roll_counts.items():
+    for roll_sum, count in ROLL_COUNTS.items():
         p_a_new = ((p_a-1+roll_sum)%10)+1
         next_state = (s_b, s_a+p_a_new, p_b, p_a_new, new_turn)
         results.append((next_state, count))
