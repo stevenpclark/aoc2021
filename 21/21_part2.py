@@ -31,13 +31,16 @@ def main():
     start_state = (0,0,p_start[0],p_start[1],0)
     uni_counts = Counter([start_state])
 
-    for turn_count in range(42):
+    done = False
+    while not done:
         prev_counts = uni_counts
         uni_counts = Counter()
+        done = True
         for state, count in prev_counts.items():
             if is_terminal(state):
                 uni_counts[state] += count
             else:
+                done = False
                 for next_state, multiplier in get_next_states(state):
                     uni_counts[next_state] += (count*multiplier)
 
