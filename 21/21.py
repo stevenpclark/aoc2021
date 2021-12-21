@@ -1,9 +1,6 @@
 test = (4,8)
 my_input = (8,3)
 
-
-
-
 def main():
     positions = list(my_input)
     last_roll = 0
