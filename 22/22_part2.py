@@ -1,3 +1,4 @@
+from itertools import product
 import numpy as np
 
 CMD_MAP = {'off': False, 'on': True}
@@ -7,12 +8,16 @@ class Solid:
         self.mode = mode
         self.bounds = bounds
         self.ndim, _ = bounds.shape
+        self.children = None
         assert self.get_volume() > 0
 
     def get_volume(self):
-        return np.prod(np.diff(self.bounds)+1)
+        if self.children is not None:
+            return sum(c.get_volume() for c in self.children)
+        else:
+            return np.prod(np.diff(self.bounds)+1)
 
-    def intersects(self, other):
+    def _intersects(self, other):
         #if any dimension does not have overlap, return False
         #else, return True
         for d in range(self.ndim):
@@ -22,9 +27,34 @@ class Solid:
                 return False
         return True
 
+    def subtract(self, other):
+        #modify self, do not modify other
+        if not self._intersects(other):
+            return
+        if self.children is not None:
+            for c in self.children:
+                c.subtract(other)
+        else:
+            self.children = list()
+            #split self into chunks
+            #remove single chunk that overlaps with subtract
+            #add all other chunks as children of self
+            #for each dim, add safe ranges
+            safe_bounds = list()
+            for d in range(self.ndim):
+                d_list = list()
+                if self.bounds[d, 0] < other.bounds[d, 0]:
+                    d_list.append([self.bounds[d,0], other.bounds[d,0]-1])
+                if other.bounds[d, 1] < self.bounds[d, 1]:
+                    d_list.append([other.bounds[d,1]+1, self.bounds[d,1]])
+                safe_bounds.append(d_list)
+            for bounds_group in product(*safe_bounds):
+                self.children.append(Solid(self.mode, np.array(bounds_group)))
+            #print(f'child list is now length {len(self.children)}')
+
 
 def main():
-    fn = 'test.txt'
+    fn = 'input.txt'
 
     with open(fn, 'r') as f:
         lines = [li.strip() for li in f.readlines()]
@@ -50,13 +80,19 @@ def main():
     for s2 in input_solids[1:]:
         #interact s2 against all existing solids
         #find all existing solids that are relevant
-        #if s2 is "off" mode, we are subtracting parts from other solids
+        #if s2 is "off" mode, we are subtracting the entirety of s2 from other solids
         #if s2 is "on" mode, we are subtracting parts from s2 and then adding remaining parts to solids list
-        relevant_solids = [s1 for s1 in solids if s1.intersects(s2)]
-
         if s2.mode:
             #on mode
+            for s1 in solids:
+                s2.subtract(s1)
+            solids.append(s2)
+        else:
+            #off mode
+            for s1 in solids:
+                s1.subtract(s2)
 
+    print(sum(s.get_volume() for s in solids))
 
 
 
