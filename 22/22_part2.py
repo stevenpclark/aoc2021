@@ -4,11 +4,12 @@ import numpy as np
 CMD_MAP = {'off': False, 'on': True}
 
 class Solid:
-    def __init__(self, mode, bounds):
+    def __init__(self, mode, bounds, name):
         self.mode = mode
         self.bounds = bounds
         self.ndim, _ = bounds.shape
         self.children = None
+        self.name = name
         assert self.get_volume() > 0
 
     def get_volume(self):
@@ -28,29 +29,42 @@ class Solid:
         return True
 
     def subtract(self, other):
+        #print(f'{self.name} is subtracting {other.name}')
         #modify self, do not modify other
         if not self._intersects(other):
+            #print(f'{other.name} doesnt intersect with {self.name}')
             return
         if self.children is not None:
+            #print(f'{self.name} calling subtract on {len(self.children)} children')
             for c in self.children:
                 c.subtract(other)
+        elif other.children is not None:
+            for c in other.children:
+                self.subtract(c)
         else:
             self.children = list()
             #split self into chunks
             #remove single chunk that overlaps with subtract
             #add all other chunks as children of self
-            #for each dim, add safe ranges
             safe_bounds = list()
+            shared_region = list()
             for d in range(self.ndim):
                 d_list = list()
                 if self.bounds[d, 0] < other.bounds[d, 0]:
                     d_list.append([self.bounds[d,0], other.bounds[d,0]-1])
                 if other.bounds[d, 1] < self.bounds[d, 1]:
                     d_list.append([other.bounds[d,1]+1, self.bounds[d,1]])
+                shared_range = [max(self.bounds[d,0],other.bounds[d,0]), min(self.bounds[d,1],other.bounds[d,1])]
+                shared_region.append(shared_range)
+                d_list.append(shared_range)
                 safe_bounds.append(d_list)
+            shared_region = tuple(shared_region)
+            n = 0
             for bounds_group in product(*safe_bounds):
-                self.children.append(Solid(self.mode, np.array(bounds_group)))
-            #print(f'child list is now length {len(self.children)}')
+                if bounds_group != shared_region:
+                    self.children.append(Solid(self.mode, np.array(bounds_group), name='%s_c%d'%(self.name,n)))
+                    n += 1
+            #print(f'{self.name} spawned {len(self.children)} children')
 
 
 def main():
@@ -60,6 +74,7 @@ def main():
         lines = [li.strip() for li in f.readlines()]
 
     input_solids = list()
+    n = 0
     for li in lines:
         li = li.replace('=', ' ').replace(',', ' ').replace('..', ' ')
         cmd, _, xmin, xmax, _, ymin, ymax, _, zmin, zmax = li.split()
@@ -71,13 +86,15 @@ def main():
         ymax = int(ymax)
         zmax = int(zmax)
         bounds = np.array([[xmin, xmax], [ymin, ymax], [zmin, zmax]])
-        input_solids.append(Solid(cmd, bounds))
+        input_solids.append(Solid(cmd, bounds, name='solid_%d'%n))
+        n += 1
 
     assert input_solids[0].mode
 
     solids = [input_solids[0]]
 
     for s2 in input_solids[1:]:
+        #print(sum(s.get_volume() for s in solids))
         #interact s2 against all existing solids
         #find all existing solids that are relevant
         #if s2 is "off" mode, we are subtracting the entirety of s2 from other solids
